@@ -6,25 +6,27 @@ import (
 	"github.com/gocolly/colly"
 )
 
-// main() contains code adapted from example found in Colly's docs:
-// http://go-colly.org/docs/examples/basic/
+type story struct {
+	Title string `selector:".titleline a"`
+}
+
 func main() {
-	// Instantiate default collector
+	// instantiate default Collector
 	c := colly.NewCollector()
 
-	// On every a element which has href attribute call callback
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-                link := e.Attr("href")
+	// grab title
+	c.OnHTML(".athing:first-of-type", func(e *colly.HTMLElement) {
+		s := &story{}
+		e.Unmarshal(s)
 
-		// Print link
-                fmt.Printf("Link found: %q -> %s\n", e.Text, link)
+		fmt.Printf("Title: %q\n", s.Title)
 	})
 
-	// Before making a request print "Visiting ..."
+	// before making a request print "Visiting ..."
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL.String())
 	})
 
-	// Start scraping on https://hackerspaces.org
-	c.Visit("https://hackerspaces.org/")
+	// start scraping here
+	c.Visit("https://news.ycombinator.com/")
 }
