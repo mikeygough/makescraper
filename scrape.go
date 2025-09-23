@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gocolly/colly"
 )
 
 type story struct {
-	Title string `json:"title" selector:".titleline a"`
+	Title       string    `json:"title" selector:".titleline a"`
+	Link        string    `json:"link"`
+	ExtractedAt time.Time `json:"extracted_at"`
 }
 
 func main() {
@@ -24,7 +27,14 @@ func main() {
 		s := &story{}
 		e.Unmarshal(s)
 
+		// add link
+		s.Link = e.ChildAttr(".titleline a", "href")
+		// add current timestamp
+		s.ExtractedAt = time.Now()
+
 		fmt.Printf("Title: %q\n", s.Title)
+		fmt.Printf("Link: %q\n", s.Link)
+		fmt.Printf("Extracted at: %v\n", s.ExtractedAt)
 
 		stories = append(stories, *s)
 	})
