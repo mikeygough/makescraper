@@ -1,16 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/gocolly/colly"
 )
 
 type story struct {
-	Title string `selector:".titleline a"`
+	Title string `json:"title" selector:".titleline a"`
 }
 
 func main() {
+	// slice to store stories
+	var stories []story
+
 	// instantiate default Collector
 	c := colly.NewCollector()
 
@@ -20,6 +25,8 @@ func main() {
 		e.Unmarshal(s)
 
 		fmt.Printf("Title: %q\n", s.Title)
+
+		stories = append(stories, *s)
 	})
 
 	// before making a request print "Visiting ..."
@@ -29,4 +36,17 @@ func main() {
 
 	// start scraping here
 	c.Visit("https://news.ycombinator.com/")
+
+	// serialize to json
+	jsonData, err := json.MarshalIndent(stories, "", "  ")
+	if err != nil {
+		fmt.Printf("Error marshaling to JSON: %v\n", err)
+		return
+	}
+
+	err = os.WriteFile("output.json", jsonData, 0644)
+	if err != nil {
+		fmt.Printf("Error writing to file: %v\n", err)
+		return
+	}
 }
